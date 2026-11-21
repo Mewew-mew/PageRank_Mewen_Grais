@@ -1,0 +1,246 @@
+== Physical Plan ==
+* Project (38)
++- * SortMergeJoin LeftOuter (37)
+   :- InMemoryTableScan (1)
+   :     +- InMemoryRelation (2)
+   :           +- * Project (16)
+   :              +- * SortMergeJoin LeftOuter (15)
+   :                 :- * Sort (9)
+   :                 :  +- * HashAggregate (8)
+   :                 :     +- Exchange (7)
+   :                 :        +- * HashAggregate (6)
+   :                 :           +- Union (5)
+   :                 :              :- LocalTableScan (3)
+   :                 :              +- LocalTableScan (4)
+   :                 +- * Sort (14)
+   :                    +- * HashAggregate (13)
+   :                       +- Exchange (12)
+   :                          +- * HashAggregate (11)
+   :                             +- * LocalTableScan (10)
+   +- * Sort (36)
+      +- * HashAggregate (35)
+         +- Exchange (34)
+            +- * HashAggregate (33)
+               +- * Project (32)
+                  +- * SortMergeJoin Inner (31)
+                     :- InMemoryTableScan (17)
+                     :     +- InMemoryRelation (18)
+                     :           +- * Project (28)
+                     :              +- * SortMergeJoin Inner (27)
+                     :                 :- * Sort (21)
+                     :                 :  +- Exchange (20)
+                     :                 :     +- LocalTableScan (19)
+                     :                 +- * Sort (26)
+                     :                    +- * HashAggregate (25)
+                     :                       +- Exchange (24)
+                     :                          +- * HashAggregate (23)
+                     :                             +- * LocalTableScan (22)
+                     +- * Project (30)
+                        +- * Scan ExistingRDD (29)
+
+
+(1) InMemoryTableScan
+Output [2]: [page_id#44, is_dangling#59]
+Arguments: [page_id#44, is_dangling#59]
+
+(2) InMemoryRelation
+Arguments: [page_id#44, is_dangling#59], CachedRDDBuilder(org.apache.spark.sql.execution.columnar.DefaultCachedBatchSerializer@afccac3,StorageLevel(disk, memory, 1 replicas),*(5) Project [page_id#44, isnull(out_degree#13) AS is_dangling#59]
++- *(5) SortMergeJoin [page_id#44], [src#6], LeftOuter
+   :- *(2) Sort [page_id#44 ASC NULLS FIRST], false, 0
+   :  +- *(2) HashAggregate(keys=[page_id#44], functions=[], output=[page_id#44])
+   :     +- Exchange hashpartitioning(page_id#44, 4), ENSURE_REQUIREMENTS, [plan_id=114]
+   :        +- *(1) HashAggregate(keys=[page_id#44], functions=[], output=[page_id#44])
+   :           +- Union
+   :              :- LocalTableScan [page_id#44]
+   :              +- LocalTableScan [page_id#46]
+   +- *(4) Sort [src#6 ASC NULLS FIRST], false, 0
+      +- *(4) HashAggregate(keys=[src#6], functions=[count(1)], output=[src#6, out_degree#13])
+         +- Exchange hashpartitioning(src#6, 4), ENSURE_REQUIREMENTS, [plan_id=121]
+            +- *(3) HashAggregate(keys=[src#6], functions=[partial_count(1)], output=[src#6, count#63L])
+               +- *(3) LocalTableScan [src#6]
+,None)
+
+(3) LocalTableScan
+Output [1]: [page_id#44]
+Arguments: [page_id#44]
+
+(4) LocalTableScan
+Output [1]: [page_id#46]
+Arguments: [page_id#46]
+
+(5) Union
+
+(6) HashAggregate [codegen id : 1]
+Input [1]: [page_id#44]
+Keys [1]: [page_id#44]
+Functions: []
+Aggregate Attributes: []
+Results [1]: [page_id#44]
+
+(7) Exchange
+Input [1]: [page_id#44]
+Arguments: hashpartitioning(page_id#44, 4), ENSURE_REQUIREMENTS, [plan_id=114]
+
+(8) HashAggregate [codegen id : 2]
+Input [1]: [page_id#44]
+Keys [1]: [page_id#44]
+Functions: []
+Aggregate Attributes: []
+Results [1]: [page_id#44]
+
+(9) Sort [codegen id : 2]
+Input [1]: [page_id#44]
+Arguments: [page_id#44 ASC NULLS FIRST], false, 0
+
+(10) LocalTableScan [codegen id : 3]
+Output [1]: [src#6]
+Arguments: [src#6]
+
+(11) HashAggregate [codegen id : 3]
+Input [1]: [src#6]
+Keys [1]: [src#6]
+Functions [1]: [partial_count(1)]
+Aggregate Attributes [1]: [count#62L]
+Results [2]: [src#6, count#63L]
+
+(12) Exchange
+Input [2]: [src#6, count#63L]
+Arguments: hashpartitioning(src#6, 4), ENSURE_REQUIREMENTS, [plan_id=121]
+
+(13) HashAggregate [codegen id : 4]
+Input [2]: [src#6, count#63L]
+Keys [1]: [src#6]
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#12L]
+Results [2]: [src#6, cast(count(1)#12L as int) AS out_degree#13]
+
+(14) Sort [codegen id : 4]
+Input [2]: [src#6, out_degree#13]
+Arguments: [src#6 ASC NULLS FIRST], false, 0
+
+(15) SortMergeJoin [codegen id : 5]
+Left keys [1]: [page_id#44]
+Right keys [1]: [src#6]
+Join type: LeftOuter
+Join condition: None
+
+(16) Project [codegen id : 5]
+Output [2]: [page_id#44, isnull(out_degree#13) AS is_dangling#59]
+Input [3]: [page_id#44, src#6, out_degree#13]
+
+(17) InMemoryTableScan
+Output [3]: [page_id#23, dst#7, out_degree#13]
+Arguments: [page_id#23, dst#7, out_degree#13]
+
+(18) InMemoryRelation
+Arguments: [page_id#23, dst#7, out_degree#13], CachedRDDBuilder(org.apache.spark.sql.execution.columnar.DefaultCachedBatchSerializer@afccac3,StorageLevel(disk, memory, 1 replicas),*(4) Project [src#6 AS page_id#23, dst#7, out_degree#13]
++- *(4) SortMergeJoin [src#6], [src#18], Inner
+   :- *(1) Sort [src#6 ASC NULLS FIRST], false, 0
+   :  +- Exchange hashpartitioning(src#6, 4), ENSURE_REQUIREMENTS, [plan_id=30]
+   :     +- LocalTableScan [src#6, dst#7]
+   +- *(3) Sort [src#18 ASC NULLS FIRST], false, 0
+      +- *(3) HashAggregate(keys=[src#18], functions=[count(1)], output=[src#18, out_degree#13])
+         +- Exchange hashpartitioning(src#18, 4), ENSURE_REQUIREMENTS, [plan_id=41]
+            +- *(2) HashAggregate(keys=[src#18], functions=[partial_count(1)], output=[src#18, count#28L])
+               +- *(2) LocalTableScan [src#18]
+,None)
+
+(19) LocalTableScan
+Output [2]: [src#6, dst#7]
+Arguments: [src#6, dst#7]
+
+(20) Exchange
+Input [2]: [src#6, dst#7]
+Arguments: hashpartitioning(src#6, 4), ENSURE_REQUIREMENTS, [plan_id=30]
+
+(21) Sort [codegen id : 1]
+Input [2]: [src#6, dst#7]
+Arguments: [src#6 ASC NULLS FIRST], false, 0
+
+(22) LocalTableScan [codegen id : 2]
+Output [1]: [src#18]
+Arguments: [src#18]
+
+(23) HashAggregate [codegen id : 2]
+Input [1]: [src#18]
+Keys [1]: [src#18]
+Functions [1]: [partial_count(1)]
+Aggregate Attributes [1]: [count#27L]
+Results [2]: [src#18, count#28L]
+
+(24) Exchange
+Input [2]: [src#18, count#28L]
+Arguments: hashpartitioning(src#18, 4), ENSURE_REQUIREMENTS, [plan_id=41]
+
+(25) HashAggregate [codegen id : 3]
+Input [2]: [src#18, count#28L]
+Keys [1]: [src#18]
+Functions [1]: [count(1)]
+Aggregate Attributes [1]: [count(1)#12L]
+Results [2]: [src#18, cast(count(1)#12L as int) AS out_degree#13]
+
+(26) Sort [codegen id : 3]
+Input [2]: [src#18, out_degree#13]
+Arguments: [src#18 ASC NULLS FIRST], false, 0
+
+(27) SortMergeJoin [codegen id : 4]
+Left keys [1]: [src#6]
+Right keys [1]: [src#18]
+Join type: Inner
+Join condition: None
+
+(28) Project [codegen id : 4]
+Output [3]: [src#6 AS page_id#23, dst#7, out_degree#13]
+Input [4]: [src#6, dst#7, src#18, out_degree#13]
+
+(29) Scan ExistingRDD [codegen id : 1]
+Output [4]: [page_id#44, v#220, is_dangling#59, rank#311]
+Arguments: [page_id#44, v#220, is_dangling#59, rank#311], MapPartitionsRDD[73] at localCheckpoint at NativeMethodAccessorImpl.java:0, ExistingRDD, hashpartitioning(page_id#44, 4), [page_id#44 ASC NULLS FIRST]
+
+(30) Project [codegen id : 1]
+Output [2]: [page_id#44, rank#311]
+Input [4]: [page_id#44, v#220, is_dangling#59, rank#311]
+
+(31) SortMergeJoin [codegen id : 2]
+Left keys [1]: [page_id#23]
+Right keys [1]: [page_id#44]
+Join type: Inner
+Join condition: None
+
+(32) Project [codegen id : 2]
+Output [2]: [dst#7 AS page_id#460, (rank#311 / cast(out_degree#13 as double)) AS contrib#461]
+Input [5]: [page_id#23, dst#7, out_degree#13, page_id#44, rank#311]
+
+(33) HashAggregate [codegen id : 2]
+Input [2]: [page_id#460, contrib#461]
+Keys [1]: [page_id#460]
+Functions [1]: [partial_sum(contrib#461)]
+Aggregate Attributes [1]: [sum#556]
+Results [2]: [page_id#460, sum#557]
+
+(34) Exchange
+Input [2]: [page_id#460, sum#557]
+Arguments: hashpartitioning(page_id#460, 4), ENSURE_REQUIREMENTS, [plan_id=392]
+
+(35) HashAggregate [codegen id : 3]
+Input [2]: [page_id#460, sum#557]
+Keys [1]: [page_id#460]
+Functions [1]: [sum(contrib#461)]
+Aggregate Attributes [1]: [sum(contrib#461)#466]
+Results [2]: [page_id#460, sum(contrib#461)#466 AS incoming_rank#467]
+
+(36) Sort [codegen id : 3]
+Input [2]: [page_id#460, incoming_rank#467]
+Arguments: [page_id#460 ASC NULLS FIRST], false, 0
+
+(37) SortMergeJoin [codegen id : 4]
+Left keys [1]: [page_id#44]
+Right keys [1]: [page_id#460]
+Join type: LeftOuter
+Join condition: None
+
+(38) Project [codegen id : 4]
+Output [4]: [page_id#44, 0.16666666666666666 AS v#220, is_dangling#59, (0.07556712962962962 + (0.85 * coalesce(incoming_rank#467, 0.0))) AS rank#476]
+Input [4]: [page_id#44, is_dangling#59, page_id#460, incoming_rank#467]
+
+
